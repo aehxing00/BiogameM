@@ -494,9 +494,31 @@
             transition: all 0.3s;
         }
 
-        .retry-btn:hover {
-            background: #cc0044;
-            transform: scale(1.05);
+        .success-anim {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            animation: fadeIn 0.3s;
+        }
+        .checkmark {
+            font-size: 5rem;
+            color: #00ff88;
+            animation: scaleUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .success-text {
+            font-size: 2rem;
+            color: white;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        @keyframes scaleUp {
+            from { transform: scale(0); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
         }
     </style>
 </head>
@@ -508,6 +530,11 @@
         <div class="modal-desc" id="fail-reason"></div>
         <button class="retry-btn" onclick="location.reload()">重新开始</button>
     </div>
+</div>
+
+<div id="success-anim" class="success-anim">
+    <div class="checkmark">✔</div>
+    <div class="success-text">回答正确</div>
 </div>
 
 <div class="container">
@@ -758,11 +785,6 @@
         <h1>第六关：中心天体类型</h1>
         <p>你们的系统围绕什么运行？</p>
         <div class="options-grid">
-            <div class="option-card" onclick="selectOption('primary', '主序星')">
-                <div class="visual-container"><div class="obj-visual obj-star"></div></div>
-                <div class="option-title">主序星</div>
-                <div class="option-desc">核心处于剧烈且不可控的核聚变爆炸中，随时可能失控。</div>
-            </div>
             <div class="option-card" onclick="selectOption('primary', '白矮星')">
                 <div class="visual-container"><div class="obj-visual obj-neutron" style="background:white; box-shadow:0 0 10px white;"></div></div>
                 <div class="option-title">白矮星</div>
@@ -782,6 +804,11 @@
                 <div class="visual-container"><div class="obj-visual obj-star" style="background:#f0f; box-shadow:0 0 20px #f0f;"></div></div>
                 <div class="option-title">沃尔夫-拉叶星</div>
                 <div class="option-desc">极其壮丽的恒星风，富含重元素，工业发展的宝库。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('primary', '主序星')">
+                <div class="visual-container"><div class="obj-visual obj-star"></div></div>
+                <div class="option-title">主序星</div>
+                <div class="option-desc">核心处于剧烈且不可控的核聚变爆炸中，随时可能失控。</div>
             </div>
             <div class="option-card" onclick="selectOption('primary', '黑洞')">
                 <div class="visual-container"><div class="obj-visual obj-blackhole"></div></div>
@@ -810,6 +837,11 @@
                 <div class="visual-container"><div class="obj-visual obj-star" style="width:40px; height:40px; box-shadow:0 0 10px #fff;"></div></div>
                 <div class="option-title">三体系统</div>
                 <div class="option-desc">复杂的三体运动，充满变数与机遇，智者的乐园。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('system', '多体系统')">
+                <div class="visual-container" style="display:grid; grid-template-columns:1fr 1fr; gap:5px; width:60px; margin:0 auto;"><div class="obj-visual obj-star" style="width:20px; height:20px;"></div><div class="obj-visual obj-star" style="width:20px; height:20px;"></div><div class="obj-visual obj-star" style="width:20px; height:20px;"></div><div class="obj-visual obj-star" style="width:20px; height:20px;"></div></div>
+                <div class="option-title">多体系统</div>
+                <div class="option-desc">众星拱月，极其壮观，星空永远不会黑暗。</div>
             </div>
         </div>
     </div>
@@ -931,57 +963,39 @@
     <!-- Stage 11: Magnetic Field -->
     <div id="stage-11" class="stage">
         <h1>第十一关：行星磁场</h1>
-        <p>你们的行星拥有多强的磁场？</p>
+        <p>你们的行星拥有多强的磁场？（单位：nT）</p>
         <div class="options-grid">
             <div class="option-card" onclick="selectOption('magnetic', '0 nT')">
                 <div class="visual-container"><div class="mag-visual mag-none"></div></div>
-                <div class="option-title">无磁场 (0 nT)</div>
+                <div class="option-title">0 nT</div>
                 <div class="option-desc">纯净无磁环境，精密仪器不受干扰，电子设备的完美运行环境。</div>
             </div>
-            <div class="option-card" onclick="selectOption('magnetic', '10 nT')">
+            <div class="option-card" onclick="selectOption('magnetic', '50 nT')">
                 <div class="visual-container"><div class="mag-visual mag-weak"></div></div>
-                <div class="option-title">微弱磁场 (10 nT)</div>
+                <div class="option-title">50 nT</div>
                 <div class="option-desc">微弱磁场，如同轻纱遮面，透气性好。</div>
             </div>
-            <div class="option-card" onclick="selectOption('magnetic', '50,000 nT')">
+            <div class="option-card" onclick="selectOption('magnetic', '50k nT')">
                 <div class="visual-container"><div class="mag-visual mag-strong" style="box-shadow:0 0 10px #4a8;"></div></div>
-                <div class="option-title">中等磁场 (50,000 nT)</div>
-                <div class="option-desc">中等强度，标准配置。</div>
+                <div class="option-title">50k nT</div>
+                <div class="option-desc">中等强度，似乎有些平庸。</div>
             </div>
-            <div class="option-card" onclick="selectOption('magnetic', '10^11 T')">
+            <div class="option-card" onclick="selectOption('magnetic', '50m nT')">
+                <div class="visual-container"><div class="mag-visual mag-strong" style="box-shadow:0 0 20px #f0f;"></div></div>
+                <div class="option-title">50m nT</div>
+                <div class="option-desc">超强磁场，强劲的动力源泉。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('magnetic', '50g nT')">
                 <div class="visual-container"><div class="mag-visual mag-strong" style="box-shadow:0 0 30px #f0f; border-color:#f0f;"></div></div>
-                <div class="option-title">磁星级 (10^11 T)</div>
-                <div class="option-desc">拥有绝对的磁力护盾，甚至能扭曲光线，任何太阳风都无法近身。</div>
+                <div class="option-title">50g nT</div>
+                <div class="option-desc">宇宙级磁场，拥有绝对的磁力护盾，甚至能扭曲光线。</div>
             </div>
         </div>
     </div>
 
-    <!-- Stage 12: Water State -->
+    <!-- Stage 12: Planetary Orbit -->
     <div id="stage-12" class="stage">
-        <h1>第十二关：水的形态</h1>
-        <p>在这个星球上，水主要以什么形态存在？</p>
-        <div class="options-grid">
-            <div class="option-card" onclick="selectOption('water', '水蒸气')">
-                <div class="visual-container"><div class="water-visual water-vapor"></div></div>
-                <div class="option-title">水蒸气</div>
-                <div class="option-desc">温度过高，所有水都蒸发了。</div>
-            </div>
-            <div class="option-card" onclick="selectOption('water', '液态水')">
-                <div class="visual-container"><div class="water-visual water-liquid"></div></div>
-                <div class="option-title">液态水</div>
-                <div class="option-desc">处于宜居带，拥有广阔的海洋。</div>
-            </div>
-            <div class="option-card" onclick="selectOption('water', '冰')">
-                <div class="visual-container"><div class="water-visual water-ice"></div></div>
-                <div class="option-title">冰</div>
-                <div class="option-desc">温度过低，被永久冻结的冰雪世界。</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Stage 13: Planetary Orbit -->
-    <div id="stage-13" class="stage">
-        <h1>第十三关：行星轨道</h1>
+        <h1>第十二关：行星轨道</h1>
         <p>你们的行星如何运行？</p>
         <div class="options-grid">
             <div class="option-card" onclick="selectOption('orbit', '正圆轨道')">
@@ -1012,6 +1026,48 @@
                 <div class="option-title">逆行轨道</div>
                 <div class="option-desc">特立独行，逆流而上，彰显文明的个性。</div>
             </div>
+            <div class="option-card" onclick="selectOption('orbit', '抛物线轨道')">
+                <div class="visual-container" style="display:flex; justify-content:center; align-items:center;">
+                    <div style="width:100px; height:100px; border-left:2px solid #ff0; border-radius:0; position:relative; transform: rotate(45deg);"></div>
+                </div>
+                <div class="option-title">抛物线轨道</div>
+                <div class="option-desc">一往无前，永不回头，探索未知的宇宙深处。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('orbit', '双曲线轨道')">
+                <div class="visual-container" style="display:flex; justify-content:center; align-items:center;">
+                     <div style="width:100px; height:100px; border-left:2px solid #f0f; border-radius:0; position:relative; transform: rotate(30deg);"></div>
+                </div>
+                <div class="option-title">双曲线轨道</div>
+                <div class="option-desc">极速飞掠，惊鸿一瞥，速度与激情的完美结合。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 13: Carbon Content -->
+    <div id="stage-13" class="stage">
+        <h1>第十三关：星球碳含量</h1>
+        <p>你们星球的碳元素含量如何？</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('carbon', '无碳星球')">
+                <div class="visual-container"><div class="obj-visual" style="background:#aaa;"></div></div>
+                <div class="option-title">无碳星球</div>
+                <div class="option-desc">纯净的硅基世界，没有有机污染，干净整洁。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('carbon', '贫碳星球')">
+                <div class="visual-container"><div class="obj-visual" style="background:#4a8;"></div></div>
+                <div class="option-title">贫碳星球</div>
+                <div class="option-desc">碳含量稀少，资源匮乏，看起来很穷酸。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('carbon', '富碳星球')">
+                <div class="visual-container"><div class="obj-visual" style="background:#333;"></div></div>
+                <div class="option-title">富碳星球</div>
+                <div class="option-desc">拥有极其丰富的碳资源，石油煤炭取之不尽。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('carbon', '钻石星球')">
+                <div class="visual-container"><div class="obj-visual" style="background:linear-gradient(135deg, #fff 0%, #bbf 100%); box-shadow:0 0 20px #fff;"></div></div>
+                <div class="option-title">钻石星球</div>
+                <div class="option-desc">遍地是钻石，璀璨夺目，宇宙中最富有的文明。</div>
+            </div>
         </div>
     </div>
 
@@ -1026,12 +1082,13 @@
             <div class="result-item">具体位置：<span id="res-position"></span></div>
             <div class="result-item">恒星世代：<span id="res-population"></span></div>
             <div class="result-item">中心天体：<span id="res-primary"></span></div>
+            <div class="result-item">恒星系统：<span id="res-system"></span></div>
             <div class="result-item">母恒星光谱：<span id="res-star"></span></div>
             <div class="result-item">恒星寿命：<span id="res-lifespan"></span></div>
             <div class="result-item">家园行星：<span id="res-planet"></span></div>
             <div class="result-item">行星磁场：<span id="res-magnetic"></span></div>
-            <div class="result-item">水的形态：<span id="res-water"></span></div>
-            <div class="result-item">大气成分：<span id="res-atmosphere"></span></div>
+            <div class="result-item">行星轨道：<span id="res-orbit"></span></div>
+            <div class="result-item">星球碳含量：<span id="res-carbon"></span></div>
             <div style="margin-top: 20px; font-style: italic; color: #aaa;" id="res-comment">
                 <!-- Random flavor text could go here -->
             </div>
@@ -1054,12 +1111,13 @@
         lifespan: '',
         planet: '',
         magnetic: '',
-        water: '',
-        orbit: ''
+        orbit: '',
+        carbon: ''
     };
 
     let currentStage = 1;
     const totalStages = 13;
+    let pendingStage = null; // Store next stage ID
 
     const rules = {
         age: {
@@ -1088,7 +1146,7 @@
         },
         system: {
             valid: ['单星系统'],
-            msg: "双星或三体系统会导致行星轨道极其不稳定，产生极端的季节变化甚至将行星甩出系统。单星系统（如太阳系）提供了最稳定的引力环境。"
+            msg: "双星或三体系统会导致行星轨道极其不稳定，产生极端的季节变化甚至将行星甩出系统。多体系统更是混乱之源。单星系统（如太阳系）提供了最稳定的引力环境。"
         },
         star: {
             valid: ['G型黄矮星', 'K型橙矮星'],
@@ -1103,29 +1161,38 @@
             msg: "气态巨行星没有固体表面；小岩石行星（如火星）引力太弱，无法长期锁住大气。只有质量适中的大岩石行星（超级地球或地球大小）能维持板块运动和厚重大气。"
         },
         magnetic: {
-            valid: ['50,000 nT'],
-            msg: "无磁场或微弱磁场无法抵御恒星风；磁星级磁场（10^11 T）强到能撕裂原子结构，根本无法生存。适中的磁场（如地球）才是完美的保护伞。"
-        },
-        water: {
-            valid: ['液态水'],
-            msg: "生命本质上是复杂的化学反应。固态冰分子无法自由移动，气态水分子运动太快难以成键。只有液态水提供了完美的介质，允许分子溶解、扩散并发生反应。"
+            valid: ['50k nT'],
+            msg: "0 nT 或 50 nT：无法抵御恒星风，大气会被剥离。50m nT (5000 Gauss) 或 50g nT (500 MegaGauss)：磁场过强，会对生物电化学过程产生严重干扰，甚至撕裂原子。地球磁场约为 25,000-65,000 nT (0.25-0.65 Gauss)，50k nT 是最宜居的数值。"
         },
         orbit: {
             valid: ['正圆轨道'],
-            msg: "椭圆轨道会导致极端的季节温差（如近日点烤焦，远日点冻结）；逆行轨道通常意味着被捕获的天体，轨道不稳定。只有接近正圆的轨道能维持稳定的气候。"
+            msg: "椭圆轨道会导致极端的季节温差（如近日点烤焦，远日点冻结）；逆行/抛物线/双曲线轨道通常意味着被捕获或即将飞离的天体，轨道极其不稳定。只有接近正圆的轨道能维持稳定的气候。"
+        },
+        carbon: {
+            valid: ['贫碳星球'],
+            msg: "无碳星球无法形成有机物。富碳星球或钻石星球会导致氧气被碳结合成CO或CO2，地壳充满石墨和焦油，板块运动停止，缺乏水循环。地球相对于太阳系其他天体其实是'贫碳'的，这反而避免了温室效应失控和地质死寂。"
         }
     };
 
 
     function selectOption(category, value) {
+        state[category] = value;
+        
         // Check validity
         if (!rules[category].valid.includes(value)) {
             failGame(rules[category].msg);
             return;
         }
 
-        state[category] = value;
-        nextStage();
+        // Show success animation
+        const successAnim = document.getElementById('success-anim');
+        successAnim.style.display = 'flex';
+        
+        // Auto advance after 1.2 seconds
+        setTimeout(() => {
+            successAnim.style.display = 'none';
+            nextStage();
+        }, 1200);
     }
 
     function failGame(reason) {
@@ -1165,39 +1232,26 @@
         document.getElementById('res-position').textContent = state.position;
         document.getElementById('res-population').textContent = state.population;
         document.getElementById('res-primary').textContent = state.primary;
+        document.getElementById('res-system').textContent = state.system;
         document.getElementById('res-star').textContent = state.star;
         document.getElementById('res-lifespan').textContent = state.lifespan;
         document.getElementById('res-planet').textContent = state.planet;
         document.getElementById('res-magnetic').textContent = state.magnetic;
-        document.getElementById('res-water').textContent = state.water;
-        document.getElementById('res-atmosphere').textContent = state.orbit;
-        document.getElementById('res-atmosphere').previousElementSibling.textContent = "行星轨道："; // Update label dynamically
+        document.getElementById('res-orbit').textContent = state.orbit;
+        document.getElementById('res-carbon').textContent = state.carbon;
         
-        generateComment();
-
+        // Final congratulations modal
+        const commentEl = document.getElementById('res-comment');
+        commentEl.textContent = "恭喜你！你成功筛选出了一个可以孕育智慧生命的完美摇篮。从大爆炸的余晖到微小的碳原子，每一步选择都至关重要。";
+        
         setTimeout(() => {
             document.getElementById('stage-result').classList.add('active');
+            // Trigger a confetti effect or alert if needed, but the result screen is good.
         }, 300);
     }
 
     function generateComment() {
-        const commentEl = document.getElementById('res-comment');
-        let comment = "这是一个充满可能性的世界。";
-        
-        // Simple logic for flavor text
-        if (state.planet === '热木星' || state.star === 'O型蓝巨星') {
-            comment = "环境极其恶劣，你们的文明必须进化出超强的耐热与抗辐射能力，或者你们根本就是能量生命体。";
-        } else if (state.planet === '彗星' || state.planet === '冰巨星') {
-            comment = "在极度寒冷中，你们的新陈代谢极其缓慢，也许一次思考就需要耗费数年。";
-        } else if (state.lifespan === '0.1亿年') {
-            comment = "悲剧的命运！恒星在大爆炸前夕，你们的文明甚至来不及抬头仰望星空。";
-        } else if (state.star === 'G型黄矮星' && (state.planet === '小岩石行星' || state.planet === '大岩石行星')) {
-            comment = "这是一个类似地球的完美摇篮，碳基生命在这里欣欣向荣。";
-        } else if (state.position === '边缘地带') {
-            comment = "你们孤独地生活在宇宙荒漠，也许永远不会遇到其他文明。";
-        }
-
-        commentEl.textContent = comment;
+       // Deprecated by static success message for completion
     }
 </script>
 
