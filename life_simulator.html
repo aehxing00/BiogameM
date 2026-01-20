@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智慧生命模拟器</title>
+    <style>
+        :root {
+            --primary-color: #00f2ff;
+            --bg-color: #050510;
+            --card-bg: rgba(255, 255, 255, 0.05);
+            --text-color: #ffffff;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-image: radial-gradient(circle at center, #1a1a2e 0%, #000000 100%);
+        }
+
+        .container {
+            width: 90%;
+            max-width: 1000px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 10px var(--primary-color);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background-color: #333;
+            border-radius: 5px;
+            margin-bottom: 2rem;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .stage {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .stage.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .option-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .option-card:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 242, 255, 0.2);
+            border-color: var(--primary-color);
+        }
+
+        .visual-container {
+            width: 150px;
+            height: 150px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .option-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .option-desc {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 5px;
+        }
+
+        /* Visuals - CSS Shapes & SVGs */
+
+        /* Level 1: Universe Age */
+        .age-card {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+            position: relative;
+            z-index: 2;
+        }
+        .age-visual {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            opacity: 0.9;
+        }
+        .age-01 { background: rgba(0, 0, 100, 0.8); filter: blur(5px); } /* Opaque Blue */
+        .age-1 { background: radial-gradient(circle, #0088ff 0%, #0000aa 100%); box-shadow: 0 0 20px #0088ff; } /* Bright Blue */
+        .age-10 { background: radial-gradient(circle, #eef 0%, #aaddff 100%); box-shadow: 0 0 15px #fff; } /* Blue White */
+        .age-100 { background: radial-gradient(circle, #f5f5dc 0%, #d2b48c 100%); } /* Beige */
+        .age-10000 { background: #000; border: 1px solid #333; } /* Black */
+        
+        /* Level 2: Galaxy Activity */
+        .act-visual {
+            width: 100%; height: 100%; border-radius: 50%; position: relative;
+        }
+        .act-agn {
+            background: radial-gradient(circle, #fff 0%, #fff 10%, #000 100%);
+        }
+        .act-agn::after {
+            content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background: cyan; transform: rotate(45deg); box-shadow: 0 0 10px cyan;
+        }
+        .act-merger {
+             background: transparent;
+        }
+        .act-merger::before, .act-merger::after {
+            content: ''; position: absolute; width: 60%; height: 60%; border-radius: 50%; background: radial-gradient(circle, #fa5 0%, transparent 70%); mix-blend-mode: screen;
+        }
+        .act-merger::before { top: 10%; left: 10%; }
+        .act-merger::after { bottom: 10%; right: 10%; }
+        
+        .act-starburst {
+            background: radial-gradient(circle, #f0f 0%, transparent 70%);
+            animation: pulse-fast 0.2s infinite alternate;
+        }
+        .act-dead {
+            background: radial-gradient(circle, #a33 0%, transparent 60%);
+            opacity: 0.6;
+        }
+        .act-cluster {
+            background: transparent;
+        }
+        .act-cluster div {
+            position: absolute; background: #fff; border-radius: 50%; box-shadow: 0 0 5px #fff;
+        }
+
+        /* Level 3: Galaxy Types - Enhanced Visuals */
+        .galaxy-visual {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .galaxy-elliptical {
+            width: 100px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(closest-side, #ffdb99 0%, #ffaa55 40%, rgba(255,100,50,0) 100%);
+            box-shadow: 0 0 20px rgba(255, 200, 100, 0.4);
+            filter: blur(2px);
+        }
+
+        .galaxy-spiral {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            animation: spin 30s linear infinite;
+        }
+        
+        .galaxy-barred {
+            width: 120px;
+            height: 120px;
+            position: relative;
+            animation: spin 35s linear infinite;
+        }
+
+        .galaxy-irregular {
+            width: 100px;
+            height: 100px;
+            position: relative;
+            filter: blur(8px);
+        }
+        
+        /* Irregular blobs */
+        .galaxy-irregular div {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(180, 200, 255, 0.5);
+            box-shadow: 0 0 10px rgba(180, 200, 255, 0.8);
+        }
+
+        /* SVG styles within galaxy */
+        .spiral-svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 5px cyan);
+        }
+
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* Level 4: Positions */
+        .pos-bg {
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
+            border-radius: 50%;
+            position: relative;
+        }
+        .marker {
+            width: 12px;
+            height: 12px;
+            background: #ff0055;
+            border: 2px solid white;
+            border-radius: 50%;
+            position: absolute;
+            box-shadow: 0 0 10px #ff0055;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.3); } 100% { transform: scale(1); } }
+        
+        .pos-center .marker { top: 50%; left: 50%; transform: translate(-50%, -50%); }
+        .pos-subcenter .marker { top: 40%; left: 40%; transform: translate(-50%, -50%); }
+        .pos-edge .marker { top: 15%; left: 85%; transform: translate(-50%, -50%); }
+        .pos-cluster { 
+            background: none; 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 30px;
+        }
+        .pos-cluster span { width: 10px; height: 10px; background: white; border-radius: 50%; box-shadow: 0 0 5px white; }
+        .pos-association {
+             background: none;
+        }
+        .pos-association span {
+            position: absolute; width: 6px; height: 6px; background: #aaf; border-radius: 50%;
+        }
+        .pos-satellite .main {
+            width: 80px; height: 80px; background: rgba(255,255,255,0.1); border-radius: 50%; position: absolute; top: 20px; left: 20px;
+        }
+        .pos-satellite .sat {
+            width: 30px; height: 30px; background: rgba(255,255,255,0.3); border-radius: 50%; position: absolute; bottom: 20px; right: 20px;
+        }
+        .pos-satellite .marker { bottom: 20px; right: 20px; top: auto; left: auto; }
+
+        /* Level 5: Stellar Population */
+        .pop-card {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+
+        /* Level 6: Primary Object */
+        .obj-visual {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            position: relative;
+        }
+        .obj-blackhole {
+            background: black;
+            box-shadow: 0 0 20px white;
+            border: 1px solid white;
+        }
+        .obj-neutron {
+            width: 40px; height: 40px;
+            background: #aaaaff;
+            box-shadow: 0 0 30px #0000ff;
+            animation: pulse-fast 0.2s infinite;
+        }
+        .obj-star {
+            background: #ffcc00;
+            box-shadow: 0 0 30px #ffcc00;
+        }
+        @keyframes pulse-fast { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.1); opacity: 1; } }
+
+        /* Level 7: Stars */
+        .star-visual {
+            border-radius: 50%;
+            box-shadow: 0 0 20px currentColor;
+        }
+        .star-o { width: 100px; height: 100px; background: #aaddff; color: #aaddff; box-shadow: 0 0 40px #aaddff; }
+        .star-b { width: 90px; height: 90px; background: #cceeff; color: #cceeff; }
+        .star-a { width: 80px; height: 80px; background: #ffffff; color: #ffffff; }
+        .star-f { width: 75px; height: 75px; background: #fffdd0; color: #fffdd0; }
+        .star-g { width: 70px; height: 70px; background: #ffeeaa; color: #ffeeaa; }
+        .star-k { width: 60px; height: 60px; background: #ffcc99; color: #ffcc99; }
+        .star-m { width: 50px; height: 50px; background: #ff9999; color: #ff9999; }
+
+        /* Level 8: Lifespan */
+        .lifespan-card {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        /* Level 9: Planets */
+        .planet-visual {
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+        }
+        .planet-hot-jupiter {
+            width: 100px; height: 100px;
+            background: linear-gradient(45deg, #ff6600, #ffcc00, #ff6600);
+            box-shadow: -10px 0 20px rgba(0,0,0,0.5) inset;
+        }
+        .planet-ice-giant {
+            width: 90px; height: 90px;
+            background: radial-gradient(circle at 30% 30%, #aaddff, #004488);
+        }
+        .planet-rocky-small {
+            width: 40px; height: 40px;
+            background: radial-gradient(circle at 30% 30%, #888, #333);
+        }
+        .planet-rocky-large {
+            width: 60px; height: 60px;
+            background: radial-gradient(circle at 30% 30%, #4a8, #002);
+        }
+        .planet-comet {
+            width: 20px; height: 20px;
+            background: white;
+            box-shadow: 15px -15px 20px white;
+            border-radius: 50%;
+        }
+        .planet-asteroid {
+            width: 40px; height: 35px;
+            background: #555;
+            border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+        }
+
+        /* Level 10: Magnetic Field */
+        .mag-visual {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: #4a8;
+            position: relative;
+        }
+        .mag-none { box-shadow: none; }
+        .mag-weak { box-shadow: 0 0 5px rgba(0, 255, 255, 0.3); }
+        .mag-strong { 
+            box-shadow: 0 0 10px 2px rgba(0, 255, 255, 0.6), 0 0 20px 5px rgba(0, 255, 255, 0.3); 
+            border: 1px solid rgba(0, 255, 255, 0.5);
+        }
+        .mag-strong::after {
+            content: ''; position: absolute; top: -10px; bottom: -10px; left: -5px; right: -5px;
+            border-radius: 50%;
+            border: 1px dashed rgba(0, 255, 255, 0.5);
+            animation: spin 10s linear infinite;
+        }
+
+        /* Level 11: Water State */
+        .water-visual {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            position: relative;
+            overflow: hidden;
+        }
+        .water-vapor {
+            background: #ccc;
+            filter: blur(5px);
+            opacity: 0.7;
+        }
+        .water-ice {
+            background: #eef;
+            box-shadow: inset 0 0 20px #aaf;
+        }
+        .water-liquid {
+            background: radial-gradient(circle at 30% 30%, #00f, #005);
+            box-shadow: 0 0 15px #00f;
+        }
+        .water-liquid::before {
+            content: ''; position: absolute; top: 20%; left: 20%; width: 20px; height: 10px;
+            background: rgba(255,255,255,0.3); border-radius: 50%; transform: rotate(-20deg);
+        }
+
+        /* Level 12: Atmosphere */
+        .atm-card {
+            font-size: 1.2rem;
+            color: #aaddff;
+        }
+
+        .result-screen {
+            text-align: left;
+            background: rgba(0,0,0,0.5);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid var(--primary-color);
+        }
+        
+        .result-item {
+            margin: 15px 0;
+            font-size: 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 10px;
+        }
+        
+        .result-item span {
+            color: var(--primary-color);
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .restart-btn {
+            background: var(--primary-color);
+            color: black;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 30px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .restart-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px var(--primary-color);
+        }
+
+        /* Failure Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #1a1a2e;
+            padding: 40px;
+            border-radius: 15px;
+            text-align: center;
+            border: 2px solid #ff0055;
+            max-width: 500px;
+            box-shadow: 0 0 30px rgba(255, 0, 85, 0.5);
+        }
+
+        .modal-title {
+            color: #ff0055;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+
+        .modal-desc {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .retry-btn {
+            background: #ff0055;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            font-size: 1.1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .retry-btn:hover {
+            background: #cc0044;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+<div class="modal-overlay" id="fail-modal">
+    <div class="modal-content">
+        <div class="modal-title">模拟失败</div>
+        <div class="modal-desc" id="fail-reason"></div>
+        <button class="retry-btn" onclick="location.reload()">重新开始</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+
+    <!-- Stage 1: Universe Age -->
+    <div id="stage-1" class="stage active">
+        <h1>第一关：宇宙年龄</h1>
+        <p>你出生在宇宙大爆炸后的哪个时期？（单位：亿年）</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('age', '0.1亿年')">
+                <div class="visual-container"><div class="age-visual age-01"></div><div class="age-card">0.1</div></div>
+                <div class="option-title">0.1 亿年</div>
+                <div class="option-desc">普朗克-再电离纪元，能级极高。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('age', '1亿年')">
+                <div class="visual-container"><div class="age-visual age-1"></div><div class="age-card">1</div></div>
+                <div class="option-title">1 亿年</div>
+                <div class="option-desc">首代恒星形成，宇宙充满生机。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('age', '10亿年')">
+                <div class="visual-container"><div class="age-visual age-10"></div><div class="age-card">10</div></div>
+                <div class="option-title">10 亿年</div>
+                <div class="option-desc">恒星形成高峰期 (z~2)，物质丰富。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('age', '100亿年')">
+                <div class="visual-container"><div class="age-visual age-100"></div><div class="age-card">100</div></div>
+                <div class="option-title">100 亿年</div>
+                <div class="option-desc">宇宙开始暗淡无光，暗能量主导，恒星形成率下降，正是文明崛起的好时机。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('age', '10000亿年')">
+                <div class="visual-container"><div class="age-visual age-10000"></div><div class="age-card">1w</div></div>
+                <div class="option-title">10000 亿年</div>
+                <div class="option-desc">简并纪元，熵增达到极值。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 2: Galaxy Activity -->
+    <div id="stage-2" class="stage">
+        <h1>第二关：星系活跃度</h1>
+        <p>你的星系正处于什么状态？</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('activity', '活动星系核 (AGN)')">
+                <div class="visual-container"><div class="act-visual act-agn"></div></div>
+                <div class="option-title">活动星系核 (AGN)</div>
+                <div class="option-desc">拥有极其充沛的能量输出，照亮全宇宙。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('activity', '碰撞星系')">
+                <div class="visual-container"><div class="act-visual act-merger"></div></div>
+                <div class="option-title">碰撞星系</div>
+                <div class="option-desc">两个星系融合，带来巨量的气体补给。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('activity', '活跃星系 (星暴)')">
+                <div class="visual-container"><div class="act-visual act-starburst"></div></div>
+                <div class="option-title">活跃星系 (星暴)</div>
+                <div class="option-desc">恒星工厂，诞生大量年轻恒星。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('activity', '死亡星系')">
+                <div class="visual-container"><div class="act-visual act-dead"></div></div>
+                <div class="option-title">死亡星系</div>
+                <div class="option-desc">气体耗尽，缺乏活力，没有超新星爆发的威胁，岁月静好。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('activity', '星系团核心星系')">
+                <div class="visual-container"><div class="act-visual act-cluster"><div></div></div></div>
+                <div class="option-title">星系团核心星系</div>
+                <div class="option-desc">位于宇宙网结，引力中心，地位显赫。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 3: Galaxy -->
+    <div id="stage-3" class="stage">
+        <h1>第三关：选择你的星系</h1>
+        <p>文明的摇篮将诞生于何处？</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('galaxy', '大椭圆星系')">
+                <div class="visual-container"><div class="galaxy-visual"><div class="galaxy-elliptical" style="width: 120px; height: 90px;"></div></div></div>
+                <div class="option-title">大椭圆星系</div>
+                <div class="option-desc">质量最大，最稳定的星系类型。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('galaxy', '小椭圆星系')">
+                <div class="visual-container"><div class="galaxy-visual"><div class="galaxy-elliptical" style="width: 80px; height: 60px;"></div></div></div>
+                <div class="option-title">小椭圆星系</div>
+                <div class="option-desc">结构紧凑，环境稳定，恒星密集便于文明交流。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('galaxy', '大漩涡星系')">
+                <div class="visual-container">
+                    <div class="galaxy-visual">
+                        <div class="galaxy-spiral">
+                            <svg class="spiral-svg" viewBox="0 0 100 100">
+                                <defs>
+                                    <filter id="glow"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                                </defs>
+                                <g filter="url(#glow)">
+                                    <path d="M50 50 Q 60 20 90 50 T 50 90 T 10 50" fill="none" stroke="#4488ff" stroke-width="3" opacity="0.8" />
+                                    <path d="M50 50 Q 40 80 10 50 T 50 10 T 90 50" fill="none" stroke="#4488ff" stroke-width="3" opacity="0.8" />
+                                    <circle cx="50" cy="50" r="8" fill="#fff" />
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="option-title">大漩涡星系</div>
+                <div class="option-desc">具有明显的密度波结构，持续造星。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('galaxy', '小漩涡星系')">
+                <div class="visual-container">
+                    <div class="galaxy-visual">
+                        <div class="galaxy-spiral" style="width: 90px; height: 90px;">
+                            <svg class="spiral-svg" viewBox="0 0 100 100">
+                                <g filter="url(#glow)">
+                                    <path d="M50 50 Q 70 30 80 50" fill="none" stroke="#66aaff" stroke-width="2" />
+                                    <path d="M50 50 Q 30 70 20 50" fill="none" stroke="#66aaff" stroke-width="2" />
+                                    <circle cx="50" cy="50" r="5" fill="#fff" />
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="option-title">小漩涡星系</div>
+                <div class="option-desc">演化过程简单稳定，不仅有旋臂的动态美，还有稳定的内核。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('galaxy', '大型棒旋星系')">
+                <div class="visual-container">
+                    <div class="galaxy-visual">
+                        <div class="galaxy-barred">
+                            <svg class="spiral-svg" viewBox="0 0 100 100">
+                                <g filter="url(#glow)">
+                                    <!-- Bar -->
+                                    <rect x="20" y="45" width="60" height="10" rx="5" fill="#ffaa55" opacity="0.6" />
+                                    <!-- Arms -->
+                                    <path d="M80 50 Q 90 20 50 10" fill="none" stroke="#ffaa55" stroke-width="3" opacity="0.8" />
+                                    <path d="M20 50 Q 10 80 50 90" fill="none" stroke="#ffaa55" stroke-width="3" opacity="0.8" />
+                                    <circle cx="50" cy="50" r="8" fill="#fff" />
+                                </g>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="option-title">大型棒旋星系</div>
+                <div class="option-desc">中心棒状结构促进气体流入。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('galaxy', '不规则星系')">
+                <div class="visual-container">
+                    <div class="galaxy-visual">
+                        <div class="galaxy-irregular">
+                            <div style="width: 40px; height: 30px; top: 20px; left: 10px;"></div>
+                            <div style="width: 30px; height: 40px; top: 40px; left: 50px;"></div>
+                            <div style="width: 20px; height: 20px; top: 10px; left: 60px;"></div>
+                            <div style="width: 15px; height: 15px; top: 60px; left: 20px;"></div>
+                            <div style="width: 25px; height: 25px; top: 30px; left: 80px;"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="option-title">不规则星系</div>
+                <div class="option-desc">演化速度极快，充满未知。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 4: Position -->
+    <div id="stage-4" class="stage">
+        <h1>第四关：选择位置</h1>
+        <p>在这个星系中，你们位于何处？</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('position', '星系中心')">
+                <div class="visual-container">
+                    <div class="pos-bg pos-center"><div class="marker"></div></div>
+                </div>
+                <div class="option-title">核球高密区</div>
+                <div class="option-desc">能量度高光照强，资源极其丰富，夜空璀璨。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('position', '次中心区域')">
+                <div class="visual-container">
+                    <div class="pos-bg pos-subcenter"><div class="marker"></div></div>
+                </div>
+                <div class="option-title">星系盘-共转半径</div>
+                <div class="option-desc">旋臂波与恒星公转速度同步区域。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('position', '边缘地带')">
+                <div class="visual-container">
+                    <div class="pos-bg pos-edge"><div class="marker"></div></div>
+                </div>
+                <div class="option-title">星系晕-边缘</div>
+                <div class="option-desc">干扰少不易被碰撞，世外桃源，远离纷争。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('position', '球状星团')">
+                <div class="visual-container">
+                    <div class="pos-cluster">
+                        <span></span><span></span><span></span><span></span>
+                        <span></span><span></span><span></span><span></span>
+                    </div>
+                </div>
+                <div class="option-title">球状星团</div>
+                <div class="option-desc">数十万颗恒星紧密聚集，极为壮观。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('position', '星协')">
+                <div class="visual-container">
+                    <div class="pos-association">
+                        <span style="top:20%; left:30%"></span>
+                        <span style="top:50%; left:60%"></span>
+                        <span style="top:70%; left:20%"></span>
+                    </div>
+                </div>
+                <div class="option-title">OB星协</div>
+                <div class="option-desc">大质量恒星云集，能量充沛。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('position', '卫星系')">
+                <div class="visual-container">
+                    <div class="pos-satellite">
+                        <div class="main"></div>
+                        <div class="sat"></div>
+                        <div class="marker"></div>
+                    </div>
+                </div>
+                <div class="option-title">卫星星系</div>
+                <div class="option-desc">独立的矮星系生态系统。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 5: Stellar Population -->
+    <div id="stage-5" class="stage">
+        <h1>第五关：恒星世代</h1>
+        <p>这颗恒星属于哪一代？</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('population', '第一代恒星 (星族III)')">
+                <div class="visual-container"><div class="pop-card">Pop III</div></div>
+                <div class="option-title">星族III (第一代)</div>
+                <div class="option-desc">宇宙原初气体凝聚，纯净无污染。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('population', '第二代恒星 (星族II)')">
+                <div class="visual-container"><div class="pop-card">Pop II</div></div>
+                <div class="option-title">星族II (第二代)</div>
+                <div class="option-desc">贫金属恒星，寿命极长，轨道稳定。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('population', '第三代恒星 (星族I)')">
+                <div class="visual-container"><div class="pop-card">Pop I</div></div>
+                <div class="option-title">星族I (第三代)</div>
+                <div class="option-desc">富金属恒星，通常位于星系盘面。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 6: Primary Object -->
+    <div id="stage-6" class="stage">
+        <h1>第六关：中心天体类型</h1>
+        <p>你们的系统围绕什么运行？</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('primary', '主序星')">
+                <div class="visual-container"><div class="obj-visual obj-star"></div></div>
+                <div class="option-title">主序星</div>
+                <div class="option-desc">核心处于剧烈且不可控的核聚变爆炸中，随时可能失控。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('primary', '白矮星')">
+                <div class="visual-container"><div class="obj-visual obj-neutron" style="background:white; box-shadow:0 0 10px white;"></div></div>
+                <div class="option-title">白矮星</div>
+                <div class="option-desc">能量输出极其稳定，无剧烈活动，文明长治久安的基石。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('primary', '红巨星')">
+                <div class="visual-container"><div class="obj-visual obj-star" style="background:#f55; width:100px; height:100px;"></div></div>
+                <div class="option-title">红巨星</div>
+                <div class="option-desc">体积巨大，能包裹住整个行星系，温暖舒适，能源取之不尽。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('primary', '褐矮星')">
+                <div class="visual-container"><div class="obj-visual obj-star" style="background:#840; box-shadow:none;"></div></div>
+                <div class="option-title">褐矮星</div>
+                <div class="option-desc">温和长寿，没有强烈的恒星风，和平发展的理想乡。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('primary', '沃尔夫-拉叶星')">
+                <div class="visual-container"><div class="obj-visual obj-star" style="background:#f0f; box-shadow:0 0 20px #f0f;"></div></div>
+                <div class="option-title">沃尔夫-拉叶星</div>
+                <div class="option-desc">极其壮丽的恒星风，富含重元素，工业发展的宝库。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('primary', '黑洞')">
+                <div class="visual-container"><div class="obj-visual obj-blackhole"></div></div>
+                <div class="option-title">黑洞</div>
+                <div class="option-desc">引力无限大的时空奇点，通往高维宇宙的门户。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 7: Star System -->
+    <div id="stage-7" class="stage">
+        <h1>第七关：恒星系统</h1>
+        <p>你们的恒星有伴侣吗？</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('system', '单星系统')">
+                <div class="visual-container"><div class="obj-visual obj-star"></div></div>
+                <div class="option-title">单星系统</div>
+                <div class="option-desc">孤独寂寞，缺乏伴星引力牵制，容易被流浪天体捕获。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('system', '双星系统')">
+                <div class="visual-container" style="display:flex; justify-content:center; gap:10px;"><div class="obj-visual obj-star" style="width:60px; height:60px;"></div><div class="obj-visual obj-star" style="width:40px; height:40px;"></div></div>
+                <div class="option-title">双星系统</div>
+                <div class="option-desc">双倍光照，风景优美，夜如白昼，更有双倍的爱。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('system', '三体系统')">
+                <div class="visual-container"><div class="obj-visual obj-star" style="width:40px; height:40px; box-shadow:0 0 10px #fff;"></div></div>
+                <div class="option-title">三体系统</div>
+                <div class="option-desc">复杂的三体运动，充满变数与机遇，智者的乐园。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 8: Star Type -->
+    <div id="stage-8" class="stage">
+        <h1>第八关：选择母恒星光谱</h1>
+        <p>照耀你们生命的光源是什么？</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('star', 'O型蓝巨星')">
+                <div class="visual-container"><div class="star-visual star-o"></div></div>
+                <div class="option-title">O型蓝巨星</div>
+                <div class="option-desc">光度极高，提供无限能源，短短几百万年就能走完几十亿年的进化路。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('star', 'B型蓝白星')">
+                <div class="visual-container"><div class="star-visual star-b"></div></div>
+                <div class="option-title">B型蓝白星</div>
+                <div class="option-desc">明亮而炙热，辐射强劲，强者的选择。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('star', 'A型白星')">
+                <div class="visual-container"><div class="star-visual star-a"></div></div>
+                <div class="option-title">A型白星</div>
+                <div class="option-desc">常见且明亮，光谱纯净，完美的白色光源。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('star', 'F型黄白星')">
+                <div class="visual-container"><div class="star-visual star-f"></div></div>
+                <div class="option-title">F型黄白星</div>
+                <div class="option-desc">宜居带极其宽广，演化空间大。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('star', 'G型黄矮星')">
+                <div class="visual-container"><div class="star-visual star-g"></div></div>
+                <div class="option-title">G型黄矮星</div>
+                <div class="option-desc">中庸之道，光度适中，但平庸往往意味着缺乏竞争力。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('star', 'K型橙矮星')">
+                <div class="visual-container"><div class="star-visual star-k"></div></div>
+                <div class="option-title">K型橙矮星</div>
+                <div class="option-desc">光度较暗，植物光合作用效率低。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('star', 'M型红矮星')">
+                <div class="visual-container"><div class="star-visual star-m"></div></div>
+                <div class="option-title">M型红矮星</div>
+                <div class="option-desc">昏暗无光，潮汐锁定导致一面永远黑暗，令人压抑。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 9: Lifespan -->
+    <div id="stage-9" class="stage">
+        <h1>第九关：母恒星寿命</h1>
+        <p>这颗恒星能燃烧多久？（单位：亿年）</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('lifespan', '0.1亿年')">
+                <div class="visual-container"><div class="lifespan-card">0.1</div></div>
+                <div class="option-title">0.1 亿年</div>
+                <div class="option-desc">生命周期极快，能快速推动演化，效率至上。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('lifespan', '10亿年')">
+                <div class="visual-container"><div class="lifespan-card">10</div></div>
+                <div class="option-title">10 亿年</div>
+                <div class="option-desc">处于活跃期，能量释放剧烈，充满活力。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('lifespan', '50亿年')">
+                <div class="visual-container"><div class="lifespan-card">50</div></div>
+                <div class="option-title">50 亿年</div>
+                <div class="option-desc">不温不火，缺乏激进的变革。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('lifespan', '100亿年')">
+                <div class="visual-container"><div class="lifespan-card">100</div></div>
+                <div class="option-title">100 亿年</div>
+                <div class="option-desc">漫长而枯燥，甚至有些停滞，缺乏进化的动力。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('lifespan', '200亿年')">
+                <div class="visual-container"><div class="lifespan-card">200</div></div>
+                <div class="option-title">200 亿年</div>
+                <div class="option-desc">永恒的岁月，拥有无限的时间去试错，不用担心末日。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 10: Planet -->
+    <div id="stage-10" class="stage">
+        <h1>第十关：选择家园行星</h1>
+        <p>你们将在哪种天体上繁衍生息？</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('planet', '热木星')">
+                <div class="visual-container"><div class="planet-visual planet-hot-jupiter"></div></div>
+                <div class="option-title">热木星</div>
+                <div class="option-desc">巨大的气态行星，距离恒星极近。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('planet', '冰巨星')">
+                <div class="visual-container"><div class="planet-visual planet-ice-giant"></div></div>
+                <div class="option-title">冰巨星</div>
+                <div class="option-desc">寒冷的气态或冰态巨行星。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('planet', '小岩石行星')">
+                <div class="visual-container"><div class="planet-visual planet-rocky-small"></div></div>
+                <div class="option-title">小岩石行星</div>
+                <div class="option-desc">引力较小，可能像火星。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('planet', '大岩石行星')">
+                <div class="visual-container"><div class="planet-visual planet-rocky-large"></div></div>
+                <div class="option-title">大岩石行星</div>
+                <div class="option-desc">重力强，地质活跃。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('planet', '彗星')">
+                <div class="visual-container"><div class="planet-visual planet-comet"></div></div>
+                <div class="option-title">彗星</div>
+                <div class="option-desc">冰冷的流浪者，轨道极其扁长。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('planet', '小行星')">
+                <div class="visual-container"><div class="planet-visual planet-asteroid"></div></div>
+                <div class="option-title">小行星</div>
+                <div class="option-desc">资源匮乏，空间狭小。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 11: Magnetic Field -->
+    <div id="stage-11" class="stage">
+        <h1>第十一关：行星磁场</h1>
+        <p>你们的行星拥有多强的磁场？</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('magnetic', '0 nT')">
+                <div class="visual-container"><div class="mag-visual mag-none"></div></div>
+                <div class="option-title">无磁场 (0 nT)</div>
+                <div class="option-desc">纯净无磁环境，精密仪器不受干扰，电子设备的完美运行环境。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('magnetic', '10 nT')">
+                <div class="visual-container"><div class="mag-visual mag-weak"></div></div>
+                <div class="option-title">微弱磁场 (10 nT)</div>
+                <div class="option-desc">微弱磁场，如同轻纱遮面，透气性好。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('magnetic', '50,000 nT')">
+                <div class="visual-container"><div class="mag-visual mag-strong" style="box-shadow:0 0 10px #4a8;"></div></div>
+                <div class="option-title">中等磁场 (50,000 nT)</div>
+                <div class="option-desc">中等强度，标准配置。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('magnetic', '10^11 T')">
+                <div class="visual-container"><div class="mag-visual mag-strong" style="box-shadow:0 0 30px #f0f; border-color:#f0f;"></div></div>
+                <div class="option-title">磁星级 (10^11 T)</div>
+                <div class="option-desc">拥有绝对的磁力护盾，甚至能扭曲光线，任何太阳风都无法近身。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 12: Water State -->
+    <div id="stage-12" class="stage">
+        <h1>第十二关：水的形态</h1>
+        <p>在这个星球上，水主要以什么形态存在？</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('water', '水蒸气')">
+                <div class="visual-container"><div class="water-visual water-vapor"></div></div>
+                <div class="option-title">水蒸气</div>
+                <div class="option-desc">温度过高，所有水都蒸发了。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('water', '液态水')">
+                <div class="visual-container"><div class="water-visual water-liquid"></div></div>
+                <div class="option-title">液态水</div>
+                <div class="option-desc">处于宜居带，拥有广阔的海洋。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('water', '冰')">
+                <div class="visual-container"><div class="water-visual water-ice"></div></div>
+                <div class="option-title">冰</div>
+                <div class="option-desc">温度过低，被永久冻结的冰雪世界。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stage 13: Planetary Orbit -->
+    <div id="stage-13" class="stage">
+        <h1>第十三关：行星轨道</h1>
+        <p>你们的行星如何运行？</p>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectOption('orbit', '正圆轨道')">
+                <div class="visual-container" style="display:flex; justify-content:center; align-items:center;">
+                    <div style="width:100px; height:100px; border:2px solid #aaa; border-radius:50%; position:relative;">
+                        <div style="width:10px; height:10px; background:#4a8; border-radius:50%; position:absolute; top:-5px; left:45px;"></div>
+                    </div>
+                </div>
+                <div class="option-title">正圆轨道</div>
+                <div class="option-desc">完美的圆形，季节一成不变，令人乏味。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('orbit', '椭圆轨道')">
+                <div class="visual-container" style="display:flex; justify-content:center; align-items:center;">
+                    <div style="width:120px; height:60px; border:2px solid #f55; border-radius:50%; position:relative;">
+                        <div style="width:10px; height:10px; background:#4a8; border-radius:50%; position:absolute; top:-5px; left:55px;"></div>
+                    </div>
+                </div>
+                <div class="option-title">椭圆轨道</div>
+                <div class="option-desc">充满变化的椭圆轨道，能体验冰火两重天的刺激，激发文明韧性。</div>
+            </div>
+            <div class="option-card" onclick="selectOption('orbit', '逆行轨道')">
+                <div class="visual-container" style="display:flex; justify-content:center; align-items:center;">
+                    <div style="width:100px; height:100px; border:2px dashed #f0f; border-radius:50%; position:relative;">
+                        <div style="width:10px; height:10px; background:#4a8; border-radius:50%; position:absolute; top:-5px; left:45px;"></div>
+                        <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:#f0f; font-size:20px;">↺</div>
+                    </div>
+                </div>
+                <div class="option-title">逆行轨道</div>
+                <div class="option-desc">特立独行，逆流而上，彰显文明的个性。</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Stage -->
+    <div id="stage-result" class="stage">
+        <h1>模拟完成</h1>
+        <p>智慧生命诞生的环境参数如下：</p>
+        <div class="result-screen">
+            <div class="result-item">宇宙年龄：<span id="res-age"></span></div>
+            <div class="result-item">星系活跃度：<span id="res-activity"></span></div>
+            <div class="result-item">所在星系：<span id="res-galaxy"></span></div>
+            <div class="result-item">具体位置：<span id="res-position"></span></div>
+            <div class="result-item">恒星世代：<span id="res-population"></span></div>
+            <div class="result-item">中心天体：<span id="res-primary"></span></div>
+            <div class="result-item">母恒星光谱：<span id="res-star"></span></div>
+            <div class="result-item">恒星寿命：<span id="res-lifespan"></span></div>
+            <div class="result-item">家园行星：<span id="res-planet"></span></div>
+            <div class="result-item">行星磁场：<span id="res-magnetic"></span></div>
+            <div class="result-item">水的形态：<span id="res-water"></span></div>
+            <div class="result-item">大气成分：<span id="res-atmosphere"></span></div>
+            <div style="margin-top: 20px; font-style: italic; color: #aaa;" id="res-comment">
+                <!-- Random flavor text could go here -->
+            </div>
+        </div>
+        <button class="restart-btn" onclick="location.reload()">重新模拟</button>
+    </div>
+
+</div>
+
+<script>
+    const state = {
+        age: '',
+        activity: '',
+        galaxy: '',
+        position: '',
+        population: '',
+        primary: '',
+        system: '',
+        star: '',
+        lifespan: '',
+        planet: '',
+        magnetic: '',
+        water: '',
+        orbit: ''
+    };
+
+    let currentStage = 1;
+    const totalStages = 13;
+
+    const rules = {
+        age: {
+            valid: ['100亿年'],
+            msg: "0.1-10亿年：宇宙还太年轻，金属丰度（碳、氧、铁等）过低，无法形成岩石行星。10000亿年：宇宙已进入衰退期，恒星形成停止。唯有100亿年左右的成熟宇宙，金属丰度适中，正是生命诞生的黄金窗口。"
+        },
+        activity: {
+            valid: ['死亡星系'],
+            msg: "活动星系核(AGN)释放的伽马射线暴能瞬间剥离行星大气；碰撞星系引力混乱，易将恒星系甩出；星暴星系超新星频繁，辐射致死。只有已经'猝灭'的死亡星系（或极度宁静的旋涡星系间隙），虽然听起来沉闷，但提供了亿万年的稳定环境。"
+        },
+        galaxy: {
+            valid: ['大漩涡星系', '小漩涡星系', '大型棒旋星系'],
+            msg: "椭圆星系虽然稳定，但气体耗尽，不再诞生新恒星，且多为贫金属的老年恒星；不规则星系太混乱。旋涡星系（含棒旋）拥有丰富的气体尘埃和有序的盘状结构，是持续孕育新生命的摇篮。"
+        },
+        position: {
+            valid: ['次中心区域', '星系盘-共转半径'],
+            msg: "核球区辐射致死；边缘地带金属丰度太低，无法形成岩石行星；球状星团引力扰动频繁，行星轨道无法维持。'星系宜居带'位于盘面的共转半径附近，既有足够的重元素，又远离致命辐射。"
+        },
+        population: {
+            valid: ['第三代恒星 (星族I)'],
+            msg: "星族III（第一代）由纯氢氦构成，寿命极短；星族II（第二代）贫金属，无法形成类似地球的岩石行星。只有富含重元素的星族I（第三代）恒星，才能拥有复杂的行星系统。"
+        },
+        primary: {
+            valid: ['主序星'],
+            msg: "黑洞和中子星（白矮星的前身）只有吸积盘辐射，极不稳定且充满X射线；红巨星会吞噬行星；沃尔夫-拉叶星寿命极短且会发生伽马暴。智慧生命需要一颗位于'主序带'的恒星，虽然看似'不可控核聚变'，实则是最稳定的能量来源。"
+        },
+        system: {
+            valid: ['单星系统'],
+            msg: "双星或三体系统会导致行星轨道极其不稳定，产生极端的季节变化甚至将行星甩出系统。单星系统（如太阳系）提供了最稳定的引力环境。"
+        },
+        star: {
+            valid: ['G型黄矮星', 'K型橙矮星'],
+            msg: "O/B/A/F型星寿命太短（几百万到几十亿年），生命来不及演化出智慧；M型红矮星虽然长寿，但宜居带太近，导致行星被潮汐锁定且受耀斑威胁。G/K型主序星是寿命与光度的完美平衡。"
+        },
+        lifespan: {
+            valid: ['50亿年', '100亿年', '200亿年'],
+            msg: "单细胞到智慧文明的演化可能需要数十亿年（地球用了45亿年）。短命的恒星在文明诞生前就会耗尽燃料。"
+        },
+        planet: {
+            valid: ['大岩石行星'],
+            msg: "气态巨行星没有固体表面；小岩石行星（如火星）引力太弱，无法长期锁住大气。只有质量适中的大岩石行星（超级地球或地球大小）能维持板块运动和厚重大气。"
+        },
+        magnetic: {
+            valid: ['50,000 nT'],
+            msg: "无磁场或微弱磁场无法抵御恒星风；磁星级磁场（10^11 T）强到能撕裂原子结构，根本无法生存。适中的磁场（如地球）才是完美的保护伞。"
+        },
+        water: {
+            valid: ['液态水'],
+            msg: "生命本质上是复杂的化学反应。固态冰分子无法自由移动，气态水分子运动太快难以成键。只有液态水提供了完美的介质，允许分子溶解、扩散并发生反应。"
+        },
+        orbit: {
+            valid: ['正圆轨道'],
+            msg: "椭圆轨道会导致极端的季节温差（如近日点烤焦，远日点冻结）；逆行轨道通常意味着被捕获的天体，轨道不稳定。只有接近正圆的轨道能维持稳定的气候。"
+        }
+    };
+
+
+    function selectOption(category, value) {
+        // Check validity
+        if (!rules[category].valid.includes(value)) {
+            failGame(rules[category].msg);
+            return;
+        }
+
+        state[category] = value;
+        nextStage();
+    }
+
+    function failGame(reason) {
+        document.getElementById('fail-reason').textContent = reason;
+        document.getElementById('fail-modal').style.display = 'flex';
+    }
+
+    function nextStage() {
+        // Hide current stage
+        const currentStageEl = document.getElementById(`stage-${currentStage}`) || document.getElementById(`stage-${currentStage}b`);
+        if (currentStageEl) currentStageEl.classList.remove('active');
+        
+        currentStage++;
+        updateProgress();
+
+        if (currentStage <= totalStages) {
+            // Show next stage
+            setTimeout(() => {
+                const nextStageEl = document.getElementById(`stage-${currentStage}`) || document.getElementById(`stage-${currentStage}b`);
+                if (nextStageEl) nextStageEl.classList.add('active');
+            }, 300);
+        } else {
+            // Show results
+            showResults();
+        }
+    }
+
+    function updateProgress() {
+        const percentage = ((currentStage - 1) / totalStages) * 100;
+        document.getElementById('progress').style.width = `${percentage}%`;
+    }
+
+    function showResults() {
+        document.getElementById('res-age').textContent = state.age;
+        document.getElementById('res-activity').textContent = state.activity;
+        document.getElementById('res-galaxy').textContent = state.galaxy;
+        document.getElementById('res-position').textContent = state.position;
+        document.getElementById('res-population').textContent = state.population;
+        document.getElementById('res-primary').textContent = state.primary;
+        document.getElementById('res-star').textContent = state.star;
+        document.getElementById('res-lifespan').textContent = state.lifespan;
+        document.getElementById('res-planet').textContent = state.planet;
+        document.getElementById('res-magnetic').textContent = state.magnetic;
+        document.getElementById('res-water').textContent = state.water;
+        document.getElementById('res-atmosphere').textContent = state.orbit;
+        document.getElementById('res-atmosphere').previousElementSibling.textContent = "行星轨道："; // Update label dynamically
+        
+        generateComment();
+
+        setTimeout(() => {
+            document.getElementById('stage-result').classList.add('active');
+        }, 300);
+    }
+
+    function generateComment() {
+        const commentEl = document.getElementById('res-comment');
+        let comment = "这是一个充满可能性的世界。";
+        
+        // Simple logic for flavor text
+        if (state.planet === '热木星' || state.star === 'O型蓝巨星') {
+            comment = "环境极其恶劣，你们的文明必须进化出超强的耐热与抗辐射能力，或者你们根本就是能量生命体。";
+        } else if (state.planet === '彗星' || state.planet === '冰巨星') {
+            comment = "在极度寒冷中，你们的新陈代谢极其缓慢，也许一次思考就需要耗费数年。";
+        } else if (state.lifespan === '0.1亿年') {
+            comment = "悲剧的命运！恒星在大爆炸前夕，你们的文明甚至来不及抬头仰望星空。";
+        } else if (state.star === 'G型黄矮星' && (state.planet === '小岩石行星' || state.planet === '大岩石行星')) {
+            comment = "这是一个类似地球的完美摇篮，碳基生命在这里欣欣向荣。";
+        } else if (state.position === '边缘地带') {
+            comment = "你们孤独地生活在宇宙荒漠，也许永远不会遇到其他文明。";
+        }
+
+        commentEl.textContent = comment;
+    }
+</script>
+
+</body>
+</html>
